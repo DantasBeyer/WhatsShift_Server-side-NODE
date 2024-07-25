@@ -1,10 +1,15 @@
-const router = require("express").Router();
-let UserProfile = require("../models/UserProfile");
 const express = require("express");
-const { register, login } = require("../controllers/userCOntroller");
+const {
+  register,
+  login,
+  updateUser,
+} = require("../controllers/userCOntroller");
+const authMiddleware = require("../middlewares/authMiddleware");
+const router = express.Router();
 
 router.post("/register", register);
 router.post("/login", login);
+router.put("/update", authMiddleware, updateUser);
 
 // Rota para obter o perfil do usuário
 router.route("/:id").get((req, res) => {

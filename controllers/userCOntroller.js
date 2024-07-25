@@ -1,29 +1,34 @@
-const Joi = require('joi');
-const UserProfile = require('../models/UserProfile');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+const Joi = require("joi");
+const UserProfile = require("../models/UserProfile");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 const schema = Joi.object({
   username: Joi.string().min(3).required(),
   email: Joi.string().email().required(),
   password: Joi.string().min(6).required(),
-  phone: Joi.string().min(10).required()
+  phone: Joi.string().min(10).required(),
 });
 
 exports.register = async (req, res) => {
-    const { error } = schema.validate(req.body);
-    if (error) return res.status(400).json({ error: error.details[0].message });
-  
-    const { username, email, password, phone } = req.body;
-    try {
-      const hashedPassword = await bcrypt.hash(password, 10);
-      const newUserProfile = new UserProfile({ username, email, password: hashedPassword, phone });
-      await newUserProfile.save();
-      res.status(201).json(newUserProfile);
-    } catch (err) {
-      res.status(500).json({ error: err.message });
-    }
-  };
+  const { error } = schema.validate(req.body);
+  if (error) return res.status(400).json({ error: error.details[0].message });
+
+  const { username, email, password, phone } = req.body;
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newUserProfile = new UserProfile({
+      username,
+      email,
+      password: hashedPassword,
+      phone,
+    });
+    await newUserProfile.save();
+    res.status(201).json(newUserProfile);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
 
 exports.login = async (req, res) => {
   const { email, password } = req.body;
@@ -40,5 +45,19 @@ exports.login = async (req, res) => {
     res.json({ token });
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+};
+
+exports.updateUser = async (req, res) => {
+  const { error } = schema.validate(req.body);
+  if (error) return res.status(400).json({ error: error.details[0].message });
+
+  try {
+    const user = await UserProfile.findByIdAndUpdate(req.user.id, req.body, {
+      new: true,
+    });
+    res.status(200).json(user);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
